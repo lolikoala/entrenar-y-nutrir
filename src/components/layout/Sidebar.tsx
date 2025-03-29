@@ -64,6 +64,14 @@ export function Sidebar() {
 
   const navItems = getNavItems();
 
+  // Función para obtener las iniciales del usuario con manejo seguro de null/undefined
+  const getUserInitials = () => {
+    if (!profile || !profile.nombre || !profile.apellido) {
+      return 'UN'; // UN = Usuario No identificado
+    }
+    return `${profile.nombre.charAt(0) || ''}${profile.apellido.charAt(0) || ''}`;
+  };
+
   return (
     <>
       {/* Botón móvil para abrir/cerrar sidebar */}
@@ -98,12 +106,16 @@ export function Sidebar() {
               <Avatar>
                 <AvatarImage src={profile?.foto_url || ''} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {profile?.nombre.charAt(0)}{profile?.apellido.charAt(0)}
+                  {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="font-medium">{profile?.nombre} {profile?.apellido}</span>
-                <span className="text-xs text-muted-foreground capitalize">{profile?.rol}</span>
+                <span className="font-medium">
+                  {profile ? `${profile.nombre || ''} ${profile.apellido || ''}` : 'Usuario'}
+                </span>
+                <span className="text-xs text-muted-foreground capitalize">
+                  {profile?.rol || ''}
+                </span>
               </div>
             </div>
             <div className="mt-3">
