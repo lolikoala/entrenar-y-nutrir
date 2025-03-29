@@ -441,30 +441,36 @@ export type Database = {
           activo: boolean | null
           apellido: string | null
           creado_en: string | null
+          email: string | null
           entrenador_id: string | null
           foto_url: string | null
           id: string
           nombre: string | null
+          password_hash: string | null
           rol: string
         }
         Insert: {
           activo?: boolean | null
           apellido?: string | null
           creado_en?: string | null
+          email?: string | null
           entrenador_id?: string | null
           foto_url?: string | null
           id: string
           nombre?: string | null
+          password_hash?: string | null
           rol: string
         }
         Update: {
           activo?: boolean | null
           apellido?: string | null
           creado_en?: string | null
+          email?: string | null
           entrenador_id?: string | null
           foto_url?: string | null
           id?: string
           nombre?: string | null
+          password_hash?: string | null
           rol?: string
         }
         Relationships: [

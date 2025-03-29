@@ -1,13 +1,18 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase, AuthUser, UserProfile, getUserProfile } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Session } from '@supabase/supabase-js';
+
+type Profile = {
+  id: string;
+  email: string;
+  rol: 'admin' | 'entrenador' | 'cliente';
+  nombre?: string;
+  apellido?: string;
+};
 
 type AuthContextType = {
-  session: Session | null;
-  user: AuthUser | null;
-  profile: UserProfile | null;
+  profile: Profile | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -15,103 +20,85 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const TOKEN_KEY = 'auth_token';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Verificar si hay una sesión activa
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    // Escuchar cambios en la autenticación
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setIsLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    checkAuth();
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
-    setIsLoading(true);
-    try {
-      const userProfile = await getUserProfile(userId);
-      setProfile(userProfile);
-    } catch (error) {
-      console.error('Error al obtener el perfil:', error);
-    } finally {
-      setIsLoading(false);
+  const checkAuth = async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      try {
+        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabase.supabaseKey}`,
+          },
+          body: JSON.stringify({ action: 'verify', token })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setProfile(data.user);
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        localStorage.removeItem(TOKEN_KEY);
+        setProfile(null);
+      }
     }
+    setIsLoading(false);
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+        },
+        body: JSON.stringify({ action: 'login', email, password })
       });
 
-      if (error) {
-        toast({
-          title: "Error al iniciar sesión",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al iniciar sesión');
       }
 
-      if (data.user) {
-        const userProfile = await getUserProfile(data.user.id);
-        setProfile(userProfile);
-        toast({
-          title: "Sesión iniciada",
-          description: `Bienvenido/a, ${userProfile?.nombre || 'Usuario'}`,
-        });
-      }
+      localStorage.setItem(TOKEN_KEY, data.token);
+      setProfile(data.user);
+      
+      toast({
+        title: "Sesión iniciada",
+        description: `Bienvenido/a, ${data.user.nombre || 'Usuario'}`,
+      });
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       toast({
         title: "Error al iniciar sesión",
-        description: "Ocurrió un error inesperado",
+        description: error.message || "Ocurrió un error inesperado",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Error al cerrar sesión",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
+      localStorage.removeItem(TOKEN_KEY);
+      setProfile(null);
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión correctamente",
@@ -129,8 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        session,
-        user,
         profile,
         isLoading,
         signIn,

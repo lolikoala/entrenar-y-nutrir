@@ -1,4 +1,3 @@
-
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -37,6 +36,5 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     }
   }
 
-  // Si todo está bien, mostrar los componentes hijos
   return <Outlet />;
 }
