@@ -1,13 +1,9 @@
 
-import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/types/database.types';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
+import type { Database } from '@/types/database.types';
 
-// Obtenemos las variables de entorno de Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
-// Creamos el cliente de Supabase con tipos
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Exportamos el cliente de Supabase ya configurado
+export const supabase = supabaseClient;
 
 // Tipo de usuario autenticado
 export type AuthUser = {
