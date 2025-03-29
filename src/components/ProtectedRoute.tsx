@@ -1,3 +1,4 @@
+
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
@@ -18,12 +19,10 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     );
   }
 
-  // Si no hay perfil, redireccionar al login
   if (!profile) {
     return <Navigate to="/login" replace />;
   }
 
-  // Si el usuario no tiene un rol permitido, redireccionar a su dashboard
   if (!allowedRoles.includes(profile.rol)) {
     if (profile.rol === 'admin') {
       return <Navigate to="/admin" replace />;

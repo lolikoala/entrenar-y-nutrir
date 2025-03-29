@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error al iniciar sesión:', error);
       toast({
         title: "Error al iniciar sesión",
-        description: error.message || "Ocurrió un error inesperado",
+        description: error.message || "Email o contraseña incorrectos",
         variant: "destructive",
       });
       throw error;

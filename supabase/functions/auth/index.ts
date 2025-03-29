@@ -1,8 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"
-import { create, verify } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
+import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,19 +27,12 @@ serve(async (req) => {
         .from('perfiles')
         .select('*')
         .eq('email', email)
+        .eq('password', password)
         .single()
 
       if (profileError || !profile) {
         return new Response(
-          JSON.stringify({ error: 'Usuario no encontrado' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-        )
-      }
-
-      const passwordMatch = await bcrypt.compare(password, profile.password_hash)
-      if (!passwordMatch) {
-        return new Response(
-          JSON.stringify({ error: 'Contraseña incorrecta' }),
+          JSON.stringify({ error: 'Email o contraseña incorrectos' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
         )
       }
@@ -73,15 +65,13 @@ serve(async (req) => {
     }
 
     if (action === 'register') {
-      const passwordHash = await bcrypt.hash(password)
-      
       const { data: newProfile, error: createError } = await supabase
         .from('perfiles')
         .insert([
           { 
             email,
-            password_hash: passwordHash,
-            rol: 'cliente', // default role
+            password,
+            rol: 'cliente', // rol por defecto
             activo: true
           }
         ])
@@ -90,7 +80,7 @@ serve(async (req) => {
 
       if (createError) {
         return new Response(
-          JSON.stringify({ error: 'Error al crear el usuario' }),
+          JSON.stringify({ error: 'Error al crear el usuario. El email ya existe.' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
       }
