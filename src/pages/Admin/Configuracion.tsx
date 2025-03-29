@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,18 @@ import { toast } from "sonner";
 
 export default function ConfiguracionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUserId(data.user.id);
+      }
+    };
+    
+    getUserId();
+  }, []);
 
   const { data: configuracion, isLoading, error, refetch } = useQuery({
     queryKey: ['configuracion'],
@@ -37,12 +48,11 @@ export default function ConfiguracionPage() {
   });
 
   const handleSaveConfig = async () => {
-    if (!configuracion) return;
+    if (!configuracion || !userId) return;
     
     setIsSubmitting(true);
     
     try {
-      // Verificar si ya existe configuración
       const { data: existingConfig } = await supabase
         .from('configuracion_interfaz')
         .select('id')
@@ -51,16 +61,33 @@ export default function ConfiguracionPage() {
       let result;
       
       if (existingConfig && existingConfig.length > 0) {
-        // Actualizar configuración existente
         result = await supabase
           .from('configuracion_interfaz')
-          .update(configuracion)
+          .update({
+            nombre_app: configuracion.nombre_app,
+            tema: configuracion.tema,
+            color_primario: configuracion.color_primario,
+            color_secundario: configuracion.color_secundario,
+            idioma: configuracion.idioma,
+            mostrar_chat: configuracion.mostrar_chat,
+            mostrar_citas: configuracion.mostrar_citas,
+            mostrar_progreso: configuracion.mostrar_progreso
+          })
           .eq('id', existingConfig[0].id);
       } else {
-        // Insertar nueva configuración
         result = await supabase
           .from('configuracion_interfaz')
-          .insert([configuracion]);
+          .insert([{
+            nombre_app: configuracion.nombre_app,
+            tema: configuracion.tema,
+            color_primario: configuracion.color_primario,
+            color_secundario: configuracion.color_secundario,
+            idioma: configuracion.idioma,
+            mostrar_chat: configuracion.mostrar_chat,
+            mostrar_citas: configuracion.mostrar_citas,
+            mostrar_progreso: configuracion.mostrar_progreso,
+            entrenador_id: userId
+          }]);
       }
       
       if (result.error) throw result.error;
@@ -107,7 +134,7 @@ export default function ConfiguracionPage() {
             Personaliza la configuración de la plataforma
           </p>
         </div>
-        <Button onClick={handleSaveConfig} disabled={isSubmitting}>
+        <Button onClick={handleSaveConfig} disabled={isSubmitting || !userId}>
           {isSubmitting ? (
             <>
               <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
