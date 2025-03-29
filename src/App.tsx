@@ -13,6 +13,8 @@ import Login from "./pages/Auth/Login";
 
 // Admin
 import AdminDashboard from "./pages/Admin/Dashboard";
+import EntrenadoresPage from "./pages/Admin/Entrenadores";
+import ConfiguracionPage from "./pages/Admin/Configuracion";
 
 // Entrenador
 import EntrenadorDashboard from "./pages/Entrenador/Dashboard";
@@ -44,7 +46,8 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route element={<MainLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
-                {/* Agregar otras rutas de admin */}
+                <Route path="/admin/entrenadores" element={<EntrenadoresPage />} />
+                <Route path="/admin/configuracion" element={<ConfiguracionPage />} />
               </Route>
             </Route>
             
@@ -53,7 +56,7 @@ const App = () => (
               <Route element={<MainLayout />}>
                 <Route path="/entrenador" element={<EntrenadorDashboard />} />
                 <Route path="/entrenador/clientes" element={<ClientesPage />} />
-                {/* Agregar otras rutas de entrenador */}
+                {/* Otras rutas de entrenador */}
               </Route>
             </Route>
             
@@ -61,7 +64,7 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={['cliente']} />}>
               <Route element={<MainLayout />}>
                 <Route path="/cliente" element={<ClienteDashboard />} />
-                {/* Agregar otras rutas de cliente */}
+                {/* Otras rutas de cliente */}
               </Route>
             </Route>
             
