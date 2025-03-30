@@ -20,14 +20,14 @@ serve(async (req) => {
   }
 
   try {
-    const { username, password, email, action } = await req.json()
+    const { username, password, email, action, nombre, apellido, rol, entrenador_id } = await req.json()
 
     if (action === 'login') {
-      // Primero intentamos buscar al usuario por nombre de usuario (username campo)
+      // Primero intentamos buscar al usuario por nombre de usuario (campo 'usuario')
       let { data: profile, error: profileError } = await supabase
         .from('perfiles')
         .select('*')
-        .eq('email', username)
+        .eq('usuario', username)
         .eq('password', password)
         .single()
 
@@ -55,6 +55,7 @@ serve(async (req) => {
         { 
           id: profile.id, 
           email: profile.email,
+          usuario: profile.usuario,
           rol: profile.rol,
           exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
         },
@@ -67,10 +68,12 @@ serve(async (req) => {
           user: {
             id: profile.id,
             email: profile.email,
+            usuario: profile.usuario,
             rol: profile.rol,
             nombre: profile.nombre,
             apellido: profile.apellido,
-            foto_url: profile.foto_url
+            foto_url: profile.foto_url,
+            entrenador_id: profile.entrenador_id
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -78,13 +81,34 @@ serve(async (req) => {
     }
 
     if (action === 'register') {
+      // Comprobar si el usuario ya existe
+      const { data: existingUser, error: checkError } = await supabase
+        .from('perfiles')
+        .select('*')
+        .or(`usuario.eq.${username},email.eq.${email}`)
+        .single()
+
+      if (existingUser) {
+        return new Response(
+          JSON.stringify({ error: 'El usuario o email ya existen' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        )
+      }
+
+      // Valores por defecto para campos obligatorios
+      let nuevoRol = rol || 'cliente';
+      
       const { data: newProfile, error: createError } = await supabase
         .from('perfiles')
         .insert([
           { 
             email,
+            usuario: username,
             password,
-            rol: 'cliente', // rol por defecto
+            rol: nuevoRol,
+            nombre,
+            apellido,
+            entrenador_id,
             activo: true
           }
         ])
@@ -92,15 +116,28 @@ serve(async (req) => {
         .single()
 
       if (createError) {
+        console.error('Error al crear usuario:', createError);
         return new Response(
-          JSON.stringify({ error: 'Error al crear el usuario. El email ya existe.' }),
+          JSON.stringify({ error: 'Error al crear el usuario: ' + createError.message }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
       }
 
       return new Response(
-        JSON.stringify({ message: 'Usuario creado exitosamente' }),
+        JSON.stringify({ 
+          message: 'Usuario creado exitosamente',
+          user: newProfile 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (action === 'verify') {
+      // Implementar la verificación del token JWT
+      // Esta parte quedará pendiente por ahora
+      return new Response(
+        JSON.stringify({ error: 'Verificación no implementada' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 501 }
       )
     }
 

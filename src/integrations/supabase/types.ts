@@ -448,6 +448,7 @@ export type Database = {
           nombre: string | null
           password: string
           rol: string
+          usuario: string
         }
         Insert: {
           activo?: boolean | null
@@ -460,6 +461,7 @@ export type Database = {
           nombre?: string | null
           password: string
           rol: string
+          usuario: string
         }
         Update: {
           activo?: boolean | null
@@ -472,6 +474,7 @@ export type Database = {
           nombre?: string | null
           password?: string
           rol?: string
+          usuario?: string
         }
         Relationships: [
           {
