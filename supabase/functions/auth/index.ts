@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
@@ -23,25 +22,31 @@ serve(async (req) => {
     const { username, password, email, action } = await req.json()
 
     if (action === 'login') {
-      // Buscar usuario por username (email) o por username si se proporciona
-      const query = supabase
+      let { data: profile, error: profileError } = await supabase
         .from('perfiles')
         .select('*')
-        .eq('password', password)
-      
-      // Si se proporciona username, buscar por username, de lo contrario buscar por email
-      const { data: profile, error: profileError } = await query
         .eq('email', username)
+        .eq('password', password)
         .single()
 
-      if (profileError || !profile) {
-        return new Response(
-          JSON.stringify({ error: 'Usuario o contraseña incorrectos' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-        )
+      if (profileError) {
+        const { data: emailProfile, error: emailProfileError } = await supabase
+          .from('perfiles')
+          .select('*')
+          .eq('email', username)
+          .eq('password', password)
+          .single()
+
+        if (emailProfileError || !emailProfile) {
+          return new Response(
+            JSON.stringify({ error: 'Usuario o contraseña incorrectos' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+          )
+        }
+
+        profile = emailProfile
       }
 
-      // Create JWT token
       const token = await create(
         { alg: "HS256", typ: "JWT" },
         { 
@@ -102,6 +107,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Error en el servidor:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

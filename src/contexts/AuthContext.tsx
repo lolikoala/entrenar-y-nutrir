@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -62,20 +63,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (username: string, password: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+      if (!import.meta.env.VITE_SUPABASE_URL) {
+        throw new Error("VITE_SUPABASE_URL no está configurado");
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${supabaseKey}`,
         },
         body: JSON.stringify({ action: 'login', username, password })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Error al iniciar sesión');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al iniciar sesión');
       }
+
+      const data = await response.json();
 
       localStorage.setItem(TOKEN_KEY, data.token);
       setProfile(data.user);
