@@ -50,7 +50,7 @@ export default function Login() {
           <CardHeader>
             <CardTitle>Iniciar sesión</CardTitle>
             <CardDescription>
-              Ingresa tus credenciales para acceder a tu cuenta
+              Ingresa tu usuario y contraseña para acceder
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -60,7 +60,7 @@ export default function Login() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="tu_usuario"
+                  placeholder="Nombre de usuario"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required

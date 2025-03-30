@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -36,11 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       try {
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+        const supabaseUrl = "https://nokelnztvnutfynfiegj.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5va2Vsbnp0dm51dGZ5bmZpZWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyODI4MTEsImV4cCI6MjA1ODg1ODgxMX0.WyUkL4Ku89J4M3PKiGpC_wDW1BZAIziw4jH86h0YnW8";
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/auth`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${supabaseKey}`,
           },
           body: JSON.stringify({ action: 'verify', token })
         });
@@ -63,12 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (username: string, password: string) => {
     try {
-      if (!import.meta.env.VITE_SUPABASE_URL) {
-        throw new Error("VITE_SUPABASE_URL no está configurado");
-      }
-      
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseUrl = "https://nokelnztvnutfynfiegj.supabase.co";
+      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5va2Vsbnp0dm51dGZ5bmZpZWdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyODI4MTEsImV4cCI6MjA1ODg1ODgxMX0.WyUkL4Ku89J4M3PKiGpC_wDW1BZAIziw4jH86h0YnW8";
       
       const response = await fetch(`${supabaseUrl}/functions/v1/auth`, {
         method: 'POST',
