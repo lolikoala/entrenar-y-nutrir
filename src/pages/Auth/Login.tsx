@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Dumbbell, Loader2 } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, profile } = useAuth();
@@ -27,7 +27,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
+      await signIn(username, password);
     } catch (error) {
       console.error('Error en inicio de sesión:', error);
     } finally {
@@ -56,13 +56,13 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Correo electrónico</Label>
+                <Label htmlFor="username">Usuario</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="tu_usuario"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>

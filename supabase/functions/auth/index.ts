@@ -20,19 +20,23 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, action } = await req.json()
+    const { username, password, email, action } = await req.json()
 
     if (action === 'login') {
-      const { data: profile, error: profileError } = await supabase
+      // Buscar usuario por username (email) o por username si se proporciona
+      const query = supabase
         .from('perfiles')
         .select('*')
-        .eq('email', email)
         .eq('password', password)
+      
+      // Si se proporciona username, buscar por username, de lo contrario buscar por email
+      const { data: profile, error: profileError } = await query
+        .eq('email', username)
         .single()
 
       if (profileError || !profile) {
         return new Response(
-          JSON.stringify({ error: 'Email o contraseña incorrectos' }),
+          JSON.stringify({ error: 'Usuario o contraseña incorrectos' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
         )
       }

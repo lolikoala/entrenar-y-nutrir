@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +14,7 @@ type Profile = {
 type AuthContextType = {
   profile: Profile | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -36,7 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       try {
-        // Usamos URL y key directamente de las variables de entorno
         const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
           method: 'POST',
           headers: {
@@ -62,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
         method: 'POST',
@@ -70,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ action: 'login', email, password })
+        body: JSON.stringify({ action: 'login', username, password })
       });
 
       const data = await response.json();
@@ -90,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error al iniciar sesión:', error);
       toast({
         title: "Error al iniciar sesión",
-        description: error.message || "Email o contraseña incorrectos",
+        description: error.message || "Usuario o contraseña incorrectos",
         variant: "destructive",
       });
       throw error;
