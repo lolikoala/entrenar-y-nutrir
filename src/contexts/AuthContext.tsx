@@ -9,6 +9,7 @@ type Profile = {
   rol: 'admin' | 'entrenador' | 'cliente';
   nombre?: string;
   apellido?: string;
+  foto_url?: string;
 };
 
 type AuthContextType = {
@@ -35,11 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       try {
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+        // Usamos URL y key directamente de las variables de entorno
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabase.supabaseKey}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({ action: 'verify', token })
         });
@@ -62,11 +64,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ action: 'login', email, password })
       });

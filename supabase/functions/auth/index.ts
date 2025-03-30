@@ -57,7 +57,8 @@ serve(async (req) => {
             email: profile.email,
             rol: profile.rol,
             nombre: profile.nombre,
-            apellido: profile.apellido
+            apellido: profile.apellido,
+            foto_url: profile.foto_url
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
